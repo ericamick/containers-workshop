@@ -7,7 +7,7 @@ metadata:
     app: todoapp
 spec:
   containers:
-  - image: "acrcontainersworkshop.azurecr.io/todoapp:v1"
+  - image: "nginx"
     name: todoapp-image
     ports:
     - containerPort: 80
@@ -34,15 +34,21 @@ kind: Ingress
 metadata:
   name: todoapp
   annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
+    # add the HTTP listener and redirect config to AppGw
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: "azure/application-gateway"
+    appgw.ingress.kubernetes.io/use-private-ip: "true"
+    appgw.ingress.kubernetes.io/appgw-ssl-certificate: appgw-cert
 spec:
   rules:
-  - http:
+  - host: todoapp-6797c564-zv5jp-dev.house.gov
+    http:
       paths:
-      - path: /
-        backend:
-          service:
-            name: todoapp
-            port:
-              number: 80
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: todoapp
+              port:
+                number: 80
         pathType: Exact
